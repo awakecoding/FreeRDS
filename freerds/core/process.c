@@ -150,6 +150,24 @@ BOOL freerds_peer_post_connect(freerdp_peer* client)
 	return TRUE;
 }
 
+static
+int freerds_init_client(HANDLE hClientPipe, rdpSettings* settings, wStream *outStream) {
+	RDS_MSG_CAPABILITIES capabilities;
+
+	memset(&capabilities, 0, sizeof(RDS_MSG_CAPABILITIES));
+	capabilities.type = RDS_CLIENT_CAPABILITIES;
+	capabilities.Version = 1;
+	capabilities.DesktopWidth = settings->DesktopWidth;
+	capabilities.DesktopHeight = settings->DesktopHeight;
+	capabilities.KeyboardLayout = settings->KeyboardLayout;
+	capabilities.KeyboardSubType = settings->KeyboardSubType;
+	freerds_write_capabilities(outStream, &capabilities);
+	return freerds_named_pipe_write(hClientPipe,
+			Stream_Buffer(outStream),
+			Stream_GetPosition(outStream)
+	);
+}
+
 BOOL freerds_peer_activate(freerdp_peer* client)
 {
 	rdpSettings* settings;
@@ -173,7 +191,7 @@ BOOL freerds_peer_activate(freerdp_peer* client)
 		connection->connector = freerds_module_connector_new(connection);
 
 	error_code = freerds_icp_GetUserSession(settings->Username, settings->Domain,
-	(UINT32 *)(&(connection->connector->SessionId)), (&(connection->connector->Endpoint)));
+			(UINT32 *)(&(connection->connector->SessionId)), (&(connection->connector->Endpoint)));
 	if (error_code != 0)
 	{
 		printf("freerds_icp_GetUserSession failed %d\n", error_code);
@@ -181,13 +199,18 @@ BOOL freerds_peer_activate(freerdp_peer* client)
 	}
 	hClientPipe = freerds_named_pipe_connect(connection->connector->Endpoint, 20);
 
-	if (!hClientPipe)
+	if (hClientPipe == INVALID_HANDLE_VALUE)
 	{
 		fprintf(stderr, "Failed to create named pipe %s\n", connection->connector->Endpoint);
 		return FALSE;
 	}
-	printf("Connected to session %d\n", connection->connector->SessionId);
+	printf("Connected to session %ld\n", connection->connector->SessionId);
 
+	if (freerds_init_client(hClientPipe, settings, connection->connector->OutboundStream))
+	{
+		fprintf(stderr, "Error sending initial packet with %s\n", connection->connector->Endpoint);
+		return FALSE;
+	}
 	connection->connector->hClientPipe = hClientPipe;
 	connection->connector->GetEventHandles = freerds_client_get_event_handles;
 	connection->connector->CheckEventHandles = freerds_client_check_event_handles;
