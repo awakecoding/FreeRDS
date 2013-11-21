@@ -141,6 +141,7 @@ int freerds_write_logoff_user(wStream* s, RDS_MSG_LOGOFF_USER* msg);
 #define RDS_CLIENT_VBLANK_EVENT			110
 #define RDS_CLIENT_LOGON_USER			111
 #define RDS_CLIENT_LOGOFF_USER			112
+#define RDS_CLIENT_LOGON_RESULT			113
 
 struct _RDS_MSG_SYNCHRONIZE_KEYBOARD_EVENT
 {
@@ -227,6 +228,15 @@ struct _RDS_MSG_VBLANK_EVENT
 typedef struct _RDS_MSG_VBLANK_EVENT RDS_MSG_VBLANK_EVENT;
 
 
+struct _RDS_MSG_LOGON_RESULT
+{
+	DEFINE_MSG_COMMON();
+
+	UINT32 authResult;
+};
+typedef struct _RDS_MSG_LOGON_RESULT RDS_MSG_LOGON_RESULT;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -257,6 +267,9 @@ int freerds_write_refresh_rect(wStream* s, RDS_MSG_REFRESH_RECT* msg);
 
 int freerds_read_vblank_event(wStream* s, RDS_MSG_VBLANK_EVENT* msg);
 int freerds_write_vblank_event(wStream* s, RDS_MSG_VBLANK_EVENT* msg);
+
+int freerds_read_logon_result(wStream* s, RDS_MSG_LOGON_RESULT* msg);
+int freerds_write_logon_event(wStream* s, RDS_MSG_LOGON_RESULT* msg);
 
 #ifdef __cplusplus
 }
@@ -639,6 +652,7 @@ typedef int (*pRdsClientExtendedMouseEvent)(rdsModuleConnector* connector, DWORD
 typedef int (*pRdsClientVBlankEvent)(rdsModuleConnector* connector);
 typedef int (*pRdsClientLogonUser)(rdsModuleConnector* connector, RDS_MSG_LOGON_USER* msg);
 typedef int (*pRdsClientLogoffUser)(rdsModuleConnector* connector, RDS_MSG_LOGOFF_USER* msg);
+typedef int (*pRdsClientLogonResult)(rdsModuleConnector* connector, RDS_MSG_LOGON_RESULT* msg);
 
 struct rds_client_interface
 {
@@ -651,6 +665,7 @@ struct rds_client_interface
 	pRdsClientVBlankEvent VBlankEvent;
 	pRdsClientLogonUser LogonUser;
 	pRdsClientLogoffUser LogoffUser;
+	pRdsClientLogonResult LogonResult;
 };
 typedef struct rds_client_interface rdsClientInterface;
 

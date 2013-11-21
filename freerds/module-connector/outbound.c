@@ -223,6 +223,12 @@ int freerds_client_outbound_logoff_user(rdsModuleConnector* connector, RDS_MSG_L
 	return freerds_client_outbound_write_message(connector, (RDS_MSG_COMMON*) msg);
 }
 
+int freerds_client_outbound_logon_result(rdsModuleConnector* connector, RDS_MSG_LOGON_RESULT* msg)
+{
+	msg->type = RDS_CLIENT_LOGON_RESULT;
+	return freerds_client_outbound_write_message(connector, (RDS_MSG_COMMON*) msg);
+}
+
 rdsClientInterface* freerds_client_outbound_interface_new()
 {
 	rdsClientInterface* client;
@@ -242,6 +248,7 @@ rdsClientInterface* freerds_client_outbound_interface_new()
 		client->VBlankEvent = freerds_client_outbound_vblank_event;
 		client->LogonUser = freerds_client_outbound_logon_user;
 		client->LogoffUser = freerds_client_outbound_logoff_user;
+		client->LogonResult = freerds_client_outbound_logon_result;
 	}
 
 	return client;
