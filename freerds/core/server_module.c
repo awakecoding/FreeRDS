@@ -269,9 +269,9 @@ int freerds_client_inbound_logon_user(rdsModuleConnector* module, RDS_MSG_LOGON_
 	rdsConnection* connection = module->connection;
 
 	if (msg->Domain)
-		fprintf(stderr, "LogonUser: %s\\%s | %s", msg->Domain, msg->User, msg->Password);
+		fprintf(stderr, "LogonUser: %s\\%s | %s\n", msg->Domain, msg->User, msg->Password);
 	else
-		fprintf(stderr, "LogonUser: %s | %s", msg->User, msg->Password);
+		fprintf(stderr, "LogonUser: %s | %s\n", msg->User, msg->Password);
 
 	authStatus = 0;
 	endPoint = NULL;
@@ -282,14 +282,25 @@ int freerds_client_inbound_logon_user(rdsModuleConnector* module, RDS_MSG_LOGON_
 
 	if (icpStatus != 0)
 	{
-		printf("freerds_icp_LogonUser failed %d\n", icpStatus);
+		fprintf(stderr, "freerds_icp_LogonUser failed %d\n", icpStatus);
 		return -1;
 	}
 
 	fprintf(stderr, "Logon Status: %d\n", authStatus);
+	if (authStatus != 0)
+	{
+		RDS_MSG_LOGON_RESULT logonResult;
+
+		ZeroMemory(&logonResult, sizeof(RDS_MSG_LOGON_RESULT));
+		logonResult.type = RDS_CLIENT_LOGON_RESULT;
+		logonResult.authResult = authStatus;
+
+		connection->connector->client->LogonResult(connection->connector, &logonResult);
+		return 0;
+	}
+
 
 	connection->connector = freerds_module_connector_new(connection);
-
 	connection->connector->Endpoint = endPoint;
 	connection->connector->SessionId = sessionId;
 
@@ -301,7 +312,7 @@ int freerds_client_inbound_logon_user(rdsModuleConnector* module, RDS_MSG_LOGON_
 		return FALSE;
 	}
 
-	printf("Connected to session %d\n", (int) connection->connector->SessionId);
+	fprintf(stderr, "Connected to session %d\n", (int) connection->connector->SessionId);
 
 	if (freerds_init_client(hClientPipe, connection->settings, connection->connector->OutboundStream) < 0)
 	{
@@ -320,26 +331,12 @@ int freerds_client_inbound_logon_user(rdsModuleConnector* module, RDS_MSG_LOGON_
 
 	ResumeThread(connection->connector->ServerThread);
 
-	if (authStatus != 0)
-	{
-		RDS_MSG_LOGON_USER logonUser;
-
-		ZeroMemory(&logonUser, sizeof(RDS_MSG_LOGON_USER));
-		logonUser.type = RDS_CLIENT_LOGON_USER;
-
-		logonUser.Flags = 0;
-		logonUser.User = msg->User;
-		logonUser.Domain = msg->Domain;
-		logonUser.Password = msg->Password;
-
-		connection->connector->client->LogonUser(connection->connector, &logonUser);
-	}
-
 	return 0;
 }
 
 int freerds_client_inbound_logoff_user(rdsModuleConnector* module, RDS_MSG_LOGOFF_USER* msg)
 {
+	fprintf(stderr, "logging off user");
 	return 0;
 }
 
