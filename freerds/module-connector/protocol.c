@@ -268,6 +268,60 @@ int freerds_write_vblank_event(wStream* s, RDS_MSG_VBLANK_EVENT* msg)
 	return 0;
 }
 
+int freerds_read_logon_result(wStream* s, RDS_MSG_LOGON_RESULT* msg)
+{
+	if (Stream_GetRemainingLength(s) < 4)
+		return -1;
+
+	Stream_Read_UINT32(s, msg->authResult);
+	return 0;
+}
+
+int freerds_write_logon_result(wStream* s, RDS_MSG_LOGON_RESULT* msg)
+{
+	msg->msgFlags = 0;
+	msg->length = freerds_write_common_header(NULL, (RDS_MSG_COMMON *)msg) + 4;
+
+	if (!s)
+		return msg->length;
+
+	freerds_write_common_header(s, (RDS_MSG_COMMON*) msg);
+	Stream_Write_UINT32(s, msg->authResult);
+	return 0;
+}
+
+void* freerds_logon_result_copy(RDS_MSG_LOGON_RESULT* msg)
+{
+	RDS_MSG_LOGON_RESULT* dup = NULL;
+
+	dup = (RDS_MSG_LOGON_RESULT*) malloc(sizeof(RDS_MSG_LOGON_RESULT));
+	CopyMemory(dup, msg, sizeof(RDS_MSG_LOGON_RESULT));
+
+	return (void*) dup;
+}
+
+void freerds_logon_result_free(RDS_MSG_LOGON_RESULT* msg)
+{
+	free(msg);
+}
+
+
+int freerds_write_logon_event(wStream* s, RDS_MSG_LOGON_RESULT* msg)
+{
+	msg->msgFlags = 0;
+	msg->length = freerds_write_common_header(NULL, (RDS_MSG_COMMON*) msg) + 4;
+
+	if (!s)
+		return msg->length;
+
+	freerds_write_common_header(s, (RDS_MSG_COMMON*) msg);
+
+	Stream_Write_UINT32(s, msg->authResult);
+	return 0;
+}
+
+
+
 
 int freerds_read_capabilities(wStream* s, RDS_MSG_CAPABILITIES* msg)
 {
@@ -2088,6 +2142,16 @@ static RDS_MSG_DEFINITION RDS_MSG_LOGOFF_USER_DEFINITION =
 	(pRdsMessageFree) freerds_logoff_user_free
 };
 
+
+static RDS_MSG_DEFINITION RDS_MSG_LOGON_RESULT_DEFINITION =
+{
+	sizeof(RDS_MSG_LOGON_RESULT), "LogonResult",
+	(pRdsMessageRead) freerds_read_logon_result,
+	(pRdsMessageWrite) freerds_write_logon_result,
+	(pRdsMessageCopy) freerds_logon_result_copy,
+	(pRdsMessageFree) freerds_logon_result_free
+};
+
 /**
  * Generic Functions
  */
@@ -2111,7 +2175,7 @@ static RDS_MSG_DEFINITION* RDS_CLIENT_MSG_DEFINITIONS[32] =
 	NULL, /* 10 */
 	&RDS_MSG_LOGON_USER_DEFINITION, /* 11 */
 	&RDS_MSG_LOGOFF_USER_DEFINITION, /* 12 */
-	NULL, /* 13 */
+	&RDS_MSG_LOGON_RESULT_DEFINITION, /* 13 */
 	NULL, /* 14 */
 	NULL, /* 15 */
 	NULL, /* 16 */
