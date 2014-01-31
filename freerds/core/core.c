@@ -30,7 +30,9 @@
 #include "core.h"
 #include "app_context.h"
 
+#ifndef _WIN32
 #include <pixman.h>
+#endif
 
 /**
  * Custom helpers
@@ -99,6 +101,7 @@ int freerds_send_bell(rdsConnection* connection)
 
 int freerds_send_bitmap_update(rdsConnection* connection, int bpp, RDS_MSG_PAINT_RECT* msg)
 {
+#ifndef _WIN32
 	BYTE* data;
 	BYTE* tile;
 	BYTE* buffer;
@@ -288,6 +291,7 @@ int freerds_send_bitmap_update(rdsConnection* connection, int bpp, RDS_MSG_PAINT
 
 	free(bitmapData);
 	free(tile);
+#endif
 
 	return 0;
 }

@@ -32,6 +32,7 @@ include(FindPkgConfig)
 include(TestBigEndian)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 if(NOT FREERDP_BUILD)
 	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/")
 endif()
@@ -115,7 +116,9 @@ add_subdirectory(freerds)
 
 add_subdirectory(scripts)
 
-add_subdirectory(session-manager)
+if(NOT WIN32)
+	add_subdirectory(session-manager)
+endif()
 
 if(${CMAKE_VERSION} VERSION_GREATER "2.8.10")
 

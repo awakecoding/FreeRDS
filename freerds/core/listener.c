@@ -26,8 +26,11 @@
 #include <winpr/thread.h>
 
 #include <errno.h>
+
+#ifndef _WIN32
 #include <sys/select.h>
 #include <sys/signal.h>
+#endif
 
 void freerds_peer_accepted(freerdp_listener* instance, freerdp_peer* client)
 {

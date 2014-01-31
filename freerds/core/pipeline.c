@@ -336,6 +336,7 @@ int freerds_message_server_align_rect(rdsBackendConnector* connector, RDS_RECT* 
 
 int freerds_message_server_queue_pack(rdsBackendConnector* connector)
 {
+#ifndef _WIN32
 	RDS_RECT rect;
 	int ChainedMode;
 	wLinkedList* list;
@@ -408,7 +409,7 @@ int freerds_message_server_queue_pack(rdsBackendConnector* connector)
 	}
 
 	pixman_region32_fini(&region);
-
+#endif
 	return 0;
 }
 

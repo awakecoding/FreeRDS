@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifndef WIN32
@@ -194,7 +193,9 @@ int main(int argc, char** argv)
 
 			if (pid > 0)
 			{
+#ifndef _WIN32
 				kill(pid, SIGTERM);
+#endif
 			}
 
 			fclose(fd);
@@ -245,6 +246,7 @@ int main(int argc, char** argv)
 
 	if (!no_daemon)
 	{
+#ifndef _WIN32
 		/* start of daemonizing code */
 		pid = fork();
 
@@ -259,6 +261,7 @@ int main(int argc, char** argv)
 			printf("process %d started\n", pid);
 			return 0;
 		}
+#endif
 
 		Sleep(1000);
 
@@ -279,6 +282,7 @@ int main(int argc, char** argv)
 		}
 
 		Sleep(1000);
+#ifndef _WIN32
 		close(0);
 		close(1);
 		close(2);
@@ -286,8 +290,9 @@ int main(int argc, char** argv)
 		open("/dev/null", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 		open("/dev/null", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 		/* end of daemonizing code */
+#endif
 	}
-#ifndef WIN32
+#ifndef _WIN32
 	/* unbock required signals */
 	sigemptyset(&set);
 	sigaddset(&set, SIGINT);
@@ -298,9 +303,11 @@ int main(int argc, char** argv)
 
 	g_listen = freerds_listener_create();
 
+#ifndef _WIN32
 	signal(SIGINT, freerds_shutdown);
 	signal(SIGTERM, freerds_shutdown);
 	signal(SIGPIPE, pipe_sig);
+#endif
 
 	pid = GetCurrentProcessId();
 

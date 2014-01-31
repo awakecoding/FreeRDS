@@ -26,8 +26,6 @@
 #ifndef PROPERTIES_H_
 #define PROPERTIES_H_
 
-#include <stdbool.h>
-
 typedef bool (*pgetPropertyBool)(long sessionID, char* path, bool* value);
 typedef bool (*pgetPropertyNumber)(long sessionID, char* path, long* value);
 typedef bool (*pgetPropertyString)(long sessionID, char* path, char* value, unsigned int valueLength);

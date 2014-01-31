@@ -40,3 +40,5 @@ set_complex_link_libraries(VARIABLE ${MODULE_PREFIX}_LIBS
 target_link_libraries(${MODULE_NAME} ${${MODULE_PREFIX}_LIBS})
 
 install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR} EXPORT FreeRDSTargets)
+
+set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "FreeRDS/libfreerds-backend")

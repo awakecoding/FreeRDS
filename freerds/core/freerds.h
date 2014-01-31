@@ -31,7 +31,9 @@
 #include <freerdp/listener.h>
 #include <freerds/backend.h>
 
+#ifndef _WIN32
 #include <pixman.h>
+#endif
 
 typedef struct xrdp_listener rdsListener;
 

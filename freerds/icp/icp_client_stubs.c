@@ -84,16 +84,16 @@ int freerds_icp_sendResponse(UINT32 tag, UINT32 type, UINT32 status, BOOL succes
 	{
 		case NOTIFY_SWITCHTO:
 			{
-				rtype = FREERDS__ICP__MSGTYPE__SwitchTo;
 				ICP_CLIENT_SEND_PREPARE(SwitchTo, switch_to)
+				rtype = FREERDS__ICP__MSGTYPE__SwitchTo;
 				response.success = success;
 				ICP_CLIENT_SEND_PACK(SwitchTo, switch_to)
 			}
 			break;
 		case NOTIFY_LOGOFF:
 			{
-				rtype = FREERDS__ICP__MSGTYPE__LogOffUserSession;
 				ICP_CLIENT_SEND_PREPARE(LogOffUserSession, log_off_user_session)
+				rtype = FREERDS__ICP__MSGTYPE__LogOffUserSession;
 				response.loggedoff = success;
 				ICP_CLIENT_SEND_PACK(LogOffUserSession, log_off_user_session)
 			}

@@ -35,12 +35,16 @@ install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Authentication Modules
 
-set(PAM_FEATURE_TYPE "REQUIRED")
-set(PAM_FEATURE_PURPOSE "authentication")
-set(PAM_FEATURE_DESCRIPTION "user authentication")
+if(UNIX)
+	set(PAM_FEATURE_TYPE "REQUIRED")
+	set(PAM_FEATURE_PURPOSE "authentication")
+	set(PAM_FEATURE_DESCRIPTION "user authentication")
 
-find_feature(PAM ${PAM_FEATURE_TYPE} ${PAM_FEATURE_PURPOSE} ${PAM_FEATURE_DESCRIPTION})
+	find_feature(PAM ${PAM_FEATURE_TYPE} ${PAM_FEATURE_PURPOSE} ${PAM_FEATURE_DESCRIPTION})
 
-if(PAM_FOUND)
-	add_subdirectory(pam)
+	if(PAM_FOUND)
+		add_subdirectory(pam)
+	endif()
 endif()
+
+set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "FreeRDS/libfreerds-auth")

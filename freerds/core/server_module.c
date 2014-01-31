@@ -23,11 +23,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #include <errno.h>
+
+#ifndef _WIN32
 #include <sys/shm.h>
 #include <sys/stat.h>
+#endif
 
 #include "freerds.h"
 
@@ -200,11 +206,12 @@ int freerds_client_inbound_glyph_index(rdsBackend* backend, RDS_MSG_GLYPH_INDEX*
 
 static void detach_framebuffer(RDS_FRAMEBUFFER *framebuffer)
 {
-
+#ifndef _WIN32
 	fprintf(stderr, "detaching segment %d from %p\n",
 			framebuffer->fbSegmentId, framebuffer->fbSharedMemory);
 	shmdt(framebuffer->fbSharedMemory);
 	ZeroMemory(framebuffer, sizeof(RDS_FRAMEBUFFER));
+#endif
 }
 
 int freerds_client_inbound_shared_framebuffer(rdsBackend* backend, RDS_MSG_SHARED_FRAMEBUFFER* msg)
@@ -234,6 +241,7 @@ int freerds_client_inbound_shared_framebuffer(rdsBackend* backend, RDS_MSG_SHARE
 		backend->framebuffer.fbBitsPerPixel = msg->bitsPerPixel;
 		backend->framebuffer.fbBytesPerPixel = msg->bytesPerPixel;
 
+#ifndef _WIN32
 		addr = shmat(backend->framebuffer.fbSegmentId, 0, SHM_RDONLY);
 
 		if (addr == ((void*) (size_t) (-1)))
@@ -252,6 +260,7 @@ int freerds_client_inbound_shared_framebuffer(rdsBackend* backend, RDS_MSG_SHARE
 		backend->framebuffer.image = (void*) pixman_image_create_bits(PIXMAN_x8r8g8b8,
 				backend->framebuffer.fbWidth, backend->framebuffer.fbHeight,
 				(uint32_t*) backend->framebuffer.fbSharedMemory, backend->framebuffer.fbScanline);
+#endif
 
 		//if ((DesktopWidth % 4) != 0)
 		//	DesktopWidth += (DesktopWidth % 4);
@@ -382,7 +391,7 @@ void icpsCallback(UINT32 reason, Freerds__Pbrpc__RPCBase* response, void *args) 
 		icps.status = ICPS_REPLY_SUCCESS;
 		icps.icpsType = response->msgtype;
 		icps.dataLen = response->payload.len;
-		icps.data = (char *)response->payload.data;
+		icps.data = (char*) response->payload.data;
 		break;
 
 	case PBRCP_TRANSPORT_ERROR:
@@ -399,19 +408,22 @@ cleanup_exit:
 
 int freerds_client_inbound_icps(rdsBackend* backend, RDS_MSG_ICPS_REQUEST* msg)
 {
-	IcpsContext *icpsContext = IcpsContext_new(backend, msg->tag, msg->icpsType);
-
 	pbRPCPayload payload;
+	pbRPCContext* pbContext;
+	IcpsContext* icpsContext;
+	
+	icpsContext = IcpsContext_new(backend, msg->tag, msg->icpsType);
+
 	payload.data = msg->data;
 	payload.dataLen = msg->dataLen;
 	payload.errorDescription = 0;
 
-	pbRPCContext *pbContext = (pbRPCContext *)freerds_icp_get_context();
+	pbContext = (pbRPCContext*) freerds_icp_get_context();
 
-	pbrcp_call_method_async(pbContext, msg->icpsType, &payload, icpsCallback, (void *)icpsContext);
+	pbrcp_call_method_async(pbContext, msg->icpsType, &payload, icpsCallback, (void*) icpsContext);
+
 	return 0;
 }
-
 
 int freerds_client_inbound_connector_init(rdsBackendConnector* connector)
 {

@@ -17,8 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <winpr/crt.h>
 #include <winpr/pipe.h>
 #include <winpr/memory.h>
+
 #include "pipe_transport.h"
 
 struct np_transport_context
@@ -104,14 +107,20 @@ HANDLE tp_npipe_get_fds(pbRPCTransportContext* context)
 
 pbRPCTransportContext* tp_npipe_new()
 {
-	NpTransportContext* np = malloc(sizeof(NpTransportContext));
+	NpTransportContext* np;
+	pbRPCTransportContext* ctx;
+	
+	np = (NpTransportContext*) malloc(sizeof(NpTransportContext));
 	ZeroMemory(np, sizeof(NpTransportContext));
-	pbRPCTransportContext *ctx = (pbRPCTransportContext*) np;
+
+	ctx = (pbRPCTransportContext*) np;
+	
 	ctx->open = tp_npipe_open;
 	ctx->close = tp_npipe_close;
 	ctx->read = tp_npipe_read;
 	ctx->write  = tp_npipe_write;
 	ctx->get_fds = tp_npipe_get_fds;
+
 	return ctx;
 }
 

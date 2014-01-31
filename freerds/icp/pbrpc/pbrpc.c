@@ -333,6 +333,7 @@ static void pbrpc_mainloop(pbRPCContext* context)
 {
 	int status;
 	DWORD nCount;
+	HANDLE thandle;
 	HANDLE events[32];
 
 	pbrpc_connect(context);
@@ -340,7 +341,7 @@ static void pbrpc_mainloop(pbRPCContext* context)
 	while (1)
 	{
 		nCount = 0;
-		HANDLE thandle = context->transport->get_fds(context->transport);
+		thandle = context->transport->get_fds(context->transport);
 		events[nCount++] = context->stopEvent;
 		events[nCount++] = Queue_Event(context->writeQueue);
 		events[nCount++] = thandle;
@@ -350,6 +351,7 @@ static void pbrpc_mainloop(pbRPCContext* context)
 		{
 			continue;
 		}
+
 		if (WaitForSingleObject(context->stopEvent, 0) == WAIT_OBJECT_0)
 		{
 			break;
@@ -415,7 +417,6 @@ static void pbrpc_response_local_cb(PBRPCSTATUS reason, Freerds__Pbrpc__RPCBase*
 	SetEvent(context->event);
 }
 
-
 int pbrpc_call_method(pbRPCContext* context, UINT32 type, pbRPCPayload* request, pbRPCPayload** response)
 {
 	Freerds__Pbrpc__RPCBase* message;
@@ -443,7 +444,7 @@ int pbrpc_call_method(pbRPCContext* context, UINT32 type, pbRPCPayload* request,
 	local_context.event = CreateEvent(NULL, TRUE, FALSE, NULL);
 	local_context.status = PBRCP_CALL_TIMEOUT;
 
-	ta.responseCallback = pbrpc_response_local_cb;
+	ta.responseCallback = (pbRpcResponseCallback) pbrpc_response_local_cb;
 	ta.callbackArg = &local_context;
 	ta.freeAfterResponse = FALSE;
 
@@ -503,6 +504,7 @@ void pbrpc_register_methods(pbRPCContext* context, pbRPCMethod *methods)
 void pbrcp_call_method_async(pbRPCContext* context, UINT32 type, pbRPCPayload* request,
 		pbRpcResponseCallback callback, void *callback_args)
 {
+	pbRPCTransaction* ta;
 	Freerds__Pbrpc__RPCBase* message;
 
 	if (!context->isConnected)
@@ -511,7 +513,7 @@ void pbrcp_call_method_async(pbRPCContext* context, UINT32 type, pbRPCPayload* r
 		return;
 	}
 
-	pbRPCTransaction *ta = pbrpc_transaction_new();
+	ta = pbrpc_transaction_new();
 	ta->responseCallback = callback;
 	ta->callbackArg = callback_args;
 

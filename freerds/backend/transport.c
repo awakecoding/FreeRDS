@@ -141,7 +141,7 @@ HANDLE freerds_named_pipe_create(const char* pipeName)
 {
 	HANDLE hNamedPipe;
 
-	hNamedPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_DUPLEX,
+	hNamedPipe = CreateNamedPipeA(pipeName, PIPE_ACCESS_DUPLEX,
 			PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
 			PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_SIZE, PIPE_BUFFER_SIZE, 0, NULL);
 
