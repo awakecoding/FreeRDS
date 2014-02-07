@@ -20,7 +20,6 @@
 
 #include <winpr/crt.h>
 #include <winpr/pipe.h>
-#include <winpr/memory.h>
 
 #include "pipe_transport.h"
 
